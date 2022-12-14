@@ -348,6 +348,7 @@ import (
 	clustercapacityproviders "github.com/upbound/provider-aws/internal/controller/ecs/clustercapacityproviders"
 	serviceecs "github.com/upbound/provider-aws/internal/controller/ecs/service"
 	taskdefinition "github.com/upbound/provider-aws/internal/controller/ecs/taskdefinition"
+	taskset "github.com/upbound/provider-aws/internal/controller/ecs/taskset"
 	accesspoint "github.com/upbound/provider-aws/internal/controller/efs/accesspoint"
 	backuppolicy "github.com/upbound/provider-aws/internal/controller/efs/backuppolicy"
 	filesystem "github.com/upbound/provider-aws/internal/controller/efs/filesystem"
@@ -914,6 +915,7 @@ func Setup(mgr ctrl.Manager, o controller.Options) error {
 		clustercapacityproviders.Setup,
 		serviceecs.Setup,
 		taskdefinition.Setup,
+		taskset.Setup,
 		accesspoint.Setup,
 		backuppolicy.Setup,
 		filesystem.Setup,

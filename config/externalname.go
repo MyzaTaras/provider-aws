@@ -362,6 +362,11 @@ var ExternalNameConfigs = map[string]config.ExternalName{
 	"aws_ecs_account_setting_default": config.IdentifierFromProvider,
 	// ECS cluster capacity providers can be imported using the cluster_name attribute
 	"aws_ecs_cluster_capacity_providers": config.IdentifierFromProvider,
+	//
+    // ECS Task Sets can be imported via the task_set_id, service, and cluster separated by commas (,):
+    // ecs-svc/7177320696926227436,arn:aws:ecs:us-west-2:123456789101:service/example/example-1234567890,arn:aws:ecs:us-west-2:123456789101:cluster/example
+    // TODO: validation may kick in, in which case we can use config.IdentifierFromProvider
+    "aws_ecs_task_set": config.IdentifierFromProvider,
 
 	// eks
 	//

@@ -1,0 +1,79 @@
+apiVersion: ecs.aws.upbound.io/v1beta1
+kind: TaskSet
+metadata:
+  annotations:
+    meta.upbound.io/example-id: ecs/v1beta1/taskset
+  labels:
+    testing.upbound.io/example-name: example
+  name: example
+spec:
+  forProvider:
+    clusterSelector:
+      matchLabels:
+        testing.upbound.io/example-name: cluster
+    region: us-east-1
+    serviceSelector:
+      matchLabels:
+        testing.upbound.io/example-name: service
+    taskDefinitionSelector:
+      matchLabels:
+        testing.upbound.io/example-name: task_definition
+
+---
+
+apiVersion: ecs.aws.upbound.io/v1beta1
+kind: Service
+metadata:
+  name: service
+  annotations:
+    meta.upbound.io/example-id: ecs/v1beta1/taskset
+  labels:
+    testing.upbound.io/example-name: service
+spec:
+  forProvider:
+    taskDefinition: sampleservice
+    cluster: cluster
+    region: us-east-1
+    launchType: EC2
+    propagateTags: TASK_DEFINITION
+
+
+---
+
+apiVersion: ecs.aws.upbound.io/v1beta1
+kind: TaskDefinition
+metadata:
+  annotations:
+    meta.upbound.io/example-id: ecs/v1beta1/taskset
+  labels:
+    testing.upbound.io/example-name: task_definition
+  name: task-definition
+spec:
+  forProvider:
+    region: us-east-1
+    family: sampleservice
+    containerDefinitions: |-
+      [
+        {
+          "name": "first",
+          "image": "service-first",
+          "cpu": 10,
+          "memory": 512,
+          "essential":true
+        }
+      ]
+
+---
+
+apiVersion: ecs.aws.upbound.io/v1beta1
+kind: Cluster
+metadata:
+  annotations:
+    meta.upbound.io/example-id: ecs/v1beta1/taskset
+  labels:
+    testing.upbound.io/example-name: cluster
+  name: cluster
+spec:
+  forProvider:
+    region: us-east-1
+

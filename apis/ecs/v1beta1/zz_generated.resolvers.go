@@ -11,8 +11,10 @@ import (
 	errors "github.com/pkg/errors"
 	v1beta1 "github.com/upbound/provider-aws/apis/autoscaling/v1beta1"
 	v1beta12 "github.com/upbound/provider-aws/apis/ec2/v1beta1"
+	v1beta13 "github.com/upbound/provider-aws/apis/elbv2/v1beta1"
 	v1beta11 "github.com/upbound/provider-aws/apis/iam/v1beta1"
 	common "github.com/upbound/provider-aws/config/common"
+	resource "github.com/upbound/upjet/pkg/resource"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -173,6 +175,82 @@ func (mg *TaskDefinition) ResolveReferences(ctx context.Context, c client.Reader
 	}
 	mg.Spec.ForProvider.ExecutionRoleArn = reference.ToPtrValue(rsp.ResolvedValue)
 	mg.Spec.ForProvider.ExecutionRoleArnRef = rsp.ResolvedReference
+
+	return nil
+}
+
+// ResolveReferences of this TaskSet.
+func (mg *TaskSet) ResolveReferences(ctx context.Context, c client.Reader) error {
+	r := reference.NewAPIResolver(c, mg)
+
+	var rsp reference.ResolutionResponse
+	var err error
+
+	rsp, err = r.Resolve(ctx, reference.ResolutionRequest{
+		CurrentValue: reference.FromPtrValue(mg.Spec.ForProvider.Cluster),
+		Extract:      resource.ExtractResourceID(),
+		Reference:    mg.Spec.ForProvider.ClusterRef,
+		Selector:     mg.Spec.ForProvider.ClusterSelector,
+		To: reference.To{
+			List:    &ClusterList{},
+			Managed: &Cluster{},
+		},
+	})
+	if err != nil {
+		return errors.Wrap(err, "mg.Spec.ForProvider.Cluster")
+	}
+	mg.Spec.ForProvider.Cluster = reference.ToPtrValue(rsp.ResolvedValue)
+	mg.Spec.ForProvider.ClusterRef = rsp.ResolvedReference
+
+	for i3 := 0; i3 < len(mg.Spec.ForProvider.LoadBalancer); i3++ {
+		rsp, err = r.Resolve(ctx, reference.ResolutionRequest{
+			CurrentValue: reference.FromPtrValue(mg.Spec.ForProvider.LoadBalancer[i3].TargetGroupArn),
+			Extract:      resource.ExtractParamPath("arn", true),
+			Reference:    mg.Spec.ForProvider.LoadBalancer[i3].TargetGroupArnRef,
+			Selector:     mg.Spec.ForProvider.LoadBalancer[i3].TargetGroupArnSelector,
+			To: reference.To{
+				List:    &v1beta13.LBTargetGroupList{},
+				Managed: &v1beta13.LBTargetGroup{},
+			},
+		})
+		if err != nil {
+			return errors.Wrap(err, "mg.Spec.ForProvider.LoadBalancer[i3].TargetGroupArn")
+		}
+		mg.Spec.ForProvider.LoadBalancer[i3].TargetGroupArn = reference.ToPtrValue(rsp.ResolvedValue)
+		mg.Spec.ForProvider.LoadBalancer[i3].TargetGroupArnRef = rsp.ResolvedReference
+
+	}
+	rsp, err = r.Resolve(ctx, reference.ResolutionRequest{
+		CurrentValue: reference.FromPtrValue(mg.Spec.ForProvider.Service),
+		Extract:      resource.ExtractResourceID(),
+		Reference:    mg.Spec.ForProvider.ServiceRef,
+		Selector:     mg.Spec.ForProvider.ServiceSelector,
+		To: reference.To{
+			List:    &ServiceList{},
+			Managed: &Service{},
+		},
+	})
+	if err != nil {
+		return errors.Wrap(err, "mg.Spec.ForProvider.Service")
+	}
+	mg.Spec.ForProvider.Service = reference.ToPtrValue(rsp.ResolvedValue)
+	mg.Spec.ForProvider.ServiceRef = rsp.ResolvedReference
+
+	rsp, err = r.Resolve(ctx, reference.ResolutionRequest{
+		CurrentValue: reference.FromPtrValue(mg.Spec.ForProvider.TaskDefinition),
+		Extract:      resource.ExtractParamPath("arn", true),
+		Reference:    mg.Spec.ForProvider.TaskDefinitionRef,
+		Selector:     mg.Spec.ForProvider.TaskDefinitionSelector,
+		To: reference.To{
+			List:    &TaskDefinitionList{},
+			Managed: &TaskDefinition{},
+		},
+	})
+	if err != nil {
+		return errors.Wrap(err, "mg.Spec.ForProvider.TaskDefinition")
+	}
+	mg.Spec.ForProvider.TaskDefinition = reference.ToPtrValue(rsp.ResolvedValue)
+	mg.Spec.ForProvider.TaskDefinitionRef = rsp.ResolvedReference
 
 	return nil
 }
